@@ -10,39 +10,53 @@ function calculatePowerLevel(x: number, y: number, serial: number) {
 }
 
 function day11(serial: number) {
-    let grid: number[][] = new Array(300);
-    let gridSumX: number[][] = new Array(300);
-    for (let y = 0; y < grid.length; ++y) {
-        grid[y] = new Array(300).fill(0);
-        gridSumX[y] = new Array(298).fill(0);
-
-        for (let x = 0; x < grid[y].length; ++x) {
-            grid[y][x] = calculatePowerLevel(x, y, serial);
-
-            if (x >= 2) {
-                gridSumX[y][x] = grid[y][x - 2] + grid[y][x - 1] + grid[y][x];
-            }
+    let summedAreaTable = new Array(300);
+    for (let y = 0; y < summedAreaTable.length; ++y) {
+        summedAreaTable[y] = new Array(300);
+        for (let x = 0; x < summedAreaTable[y].length; ++x) {
+            let value = calculatePowerLevel(x, y, serial);
+            let down1 = y === 0 ? 0 : summedAreaTable[y - 1][x];
+            let back1 = x === 0 ? 0 : summedAreaTable[y][x - 1];
+            let back1down1 = (x == 0 || y == 0) ? 0 : summedAreaTable[y - 1][x - 1];
+            summedAreaTable[y][x] = value + down1 + back1 - back1down1;
         }
     }
+
+    let maxSum3 = Number.MIN_SAFE_INTEGER;
+    let maxSum3Coordinate = null;
 
     let maxSum = Number.MIN_SAFE_INTEGER;
     let maxSumCoordinate = null;
-    for (let y = 0; y < gridSumX.length - 2; ++y) {
-        for (let x = 0; x < gridSumX[y].length; ++x) {
-            let sum = gridSumX[y][x] + gridSumX[y + 1][x] + gridSumX[y + 2][x];
-
-            if (sum > maxSum) {
-                maxSum = sum;
-                maxSumCoordinate = [x - 1, y + 1];
+    let maxSumSize = 0;
+    for (let i = 0; i < 300; ++i) {
+        for (let y = 0; y < summedAreaTable.length; ++y) {
+            if (y - i < 0) {
+                continue;
+            }
+            for (let x = 0; x < summedAreaTable[y].length; ++x) {
+                if (x - i < 0) {
+                    continue;
+                }
+                let topLeft = summedAreaTable[y - i][x - i];
+                let topRight = summedAreaTable[y - i][x];
+                let bottomLeft = summedAreaTable[y][x - i];
+                let bottomRight = summedAreaTable[y][x];
+                let sum = bottomRight + topLeft - topRight - bottomLeft;
+                if (sum > maxSum) {
+                    maxSum = sum;
+                    maxSumCoordinate = [x - i + 2, y - i + 2];
+                    maxSumSize = i;
+                }
+                if (i === 3 && sum > maxSum3) {
+                    maxSum3 = sum;
+                    maxSum3Coordinate = [x - i + 2, y - i + 2];
+                }
             }
         }
     }
-
-    console.log(maxSum, maxSumCoordinate);
+    console.log(maxSum3, maxSum3Coordinate);
+    console.log(maxSum, maxSumCoordinate, maxSumSize);
 }
-
-
-console.log(calculatePowerLevel(2, 4, 8));
 
 day11(18);
 
